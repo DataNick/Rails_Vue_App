@@ -1,6 +1,6 @@
 <template>
-  <div id="app" class="row">
-    <div v-for="(list, index) in original_lists" class="col-3">
+  <draggable v-model="lists" :options="{group: 'lists'}" class="row dragArea" @end="listMoved">
+    <div v-for="(list, index) in lists" class="col-3">
       <h6>{{ list.name }}</h6>
       <hr />
       <div v-for="(card, index) in list.cards" class="card card-body mb-3">
@@ -11,7 +11,7 @@
         <button class="btn btn-primary" @click="newCard(list.id)">New Card</button>
       </div>
     </div>
-  </div>
+  </draggable>
 </template>
 
 <script>
@@ -26,6 +26,18 @@ export default {
     }
   },
   methods: {
+    listMoved: function(event) {
+      var data = new FormData;
+      data.append("list[position]", event.newIndex + 1)
+
+      Rails.ajax({
+        url: `/lists/${this.lists[event.newIndex].id}/move`,
+        type: "PATCH",
+        data: data,
+        dataType: "json"
+      })
+    },
+
     newCard: function(list_id){
       var data = new FormData;
       data.append("card[list_id]", list_id);
@@ -55,5 +67,9 @@ export default {
 p {
   font-size: 2em;
   text-align: center;
+}
+
+.dragArea:hover {
+  min-height: 20px;
 }
 </style>
